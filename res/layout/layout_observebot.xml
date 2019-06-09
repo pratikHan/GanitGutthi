@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/relativeobservebot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:visibility="gone" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/dialoglabel1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Was it a Foul ?"
+            android:textSize="25dp"
+            android:layout_marginBottom="30dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+          
+            android:orientation="horizontal" >
+
+            <ImageButton
+                android:id="@+id/btnfoul"
+                android:layout_width="178dp"
+                android:layout_height="68dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/custom_design_foulbtn" />
+            
+            <Button
+                android:id="@+id/btnnofoul"
+                android:layout_width="178dp"
+                android:layout_height="68dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/custom_design_nofoulbtn"
+                android:textSize="10dip"
+                 />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,1132 @@
+package com.example.kluggame2;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.example.kluggame2.FragmentAngleUI.GestureListener;
+import com.example.kluggame2.FragmentAngleUI.MyDragListener;
+
+
+
+
+
+
+
+
+
+import com.example.utils.Timerx.TimerInterface;
+import com.google.gson.Gson;
+
+import android.R.integer;
+import android.app.Fragment;
+import android.content.ClipData;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.DragEvent;
+import android.view.GestureDetector;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.DragShadowBuilder;
+import android.view.View.OnClickListener;
+import android.view.View.OnDragListener;
+import android.view.View.OnTouchListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
+import android.webkit.WebView.FindListener;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.VerticalSeekBar;
+
+public class StartGame extends Fragment implements
+		OnSeekBarChangeListener, OnClickListener,TimerInterface {
+
+	
+	//test variables
+	Button nofoul;
+	public static Boolean testflagA=false;
+	public static Boolean testflagB=false;
+	
+	
+	
+	TextView txtsteps, txtangle;
+	ImageButton foul, steps, rotate, guide;
+	VerticalSeekBar seek_bar;
+	RelativeLayout relativecircle,relativecirclebackground,layoutsteps,leftsteps,rightangle,relativemastermind,observe_bot;
+	ImageView pointer;
+	AndroidUnityInterface uinterface;
+	MainActivity act;
+	ArrayList<String> mastersum = new ArrayList<String>();
+	ArrayList<String> detectivesum = new ArrayList<String>();
+
+	private static final double SWIPE_MIN_DISTANCE = 30;
+	private static final String TAG = "START GAME";
+	String stepsdata;
+	public String sumstring="";
+	
+	Animation animation;
+	RotateAnimation r;
+	
+	public StartGame(){}
+	public StartGame(MainActivity _act) {
+		uinterface = AndroidUnityInterface.getInstance();
+
+		act = _act;
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+
+		View view = inflater.inflate(R.layout.fragment_start_game, null);
+
+		relativecircle = (RelativeLayout) view
+				.findViewById(R.id.relativecircledrag);
+		relativecirclebackground = (RelativeLayout) view
+				.findViewById(R.id.relativecircle);
+		relativemastermind = (RelativeLayout) view
+				.findViewById(R.id.relativemastermind);
+		observe_bot=(RelativeLayout)view.findViewById(R.id.relativeobservebot);
+		layoutsteps = (RelativeLayout) view
+				.findViewById(R.id.layoutchunksteps);
+		leftsteps = (RelativeLayout) view
+				.findViewById(R.id.leftsidestepsbackground);
+		rightangle = (RelativeLayout) view
+				.findViewById(R.id.rightsideanglebackground);
+		
+		
+		pointer = (ImageView) view.findViewById(R.id.pointer);
+
+		nofoul = (Button) view.findViewById(R.id.btnnofoul);
+		
+		foul = (ImageButton) view.findViewById(R.id.btnfoul);
+		rotate = (ImageButton) view.findViewById(R.id.imageButtonRotate);
+		steps = (ImageButton) view.findViewById(R.id.imageButtonsteps);
+		guide = (ImageButton) view.findViewById(R.id.imageButtonGuide4);
+
+		txtsteps = (TextView) view.findViewById(R.id.textsteps);
+		txtangle = (TextView) view.findViewById(R.id.textangle);
+
+		seek_bar = (VerticalSeekBar) view.findViewById(R.id.seekBar1);
+		seek_bar.setOnSeekBarChangeListener(this);
+
+		txtsteps.setText("" + seek_bar.getProgress());
+
+	//	relativecircle.setOnDragListener(new MyDragListener());
+	relativecircle.setOnTouchListener(new MyTouchListener());
+
+		rotate.setOnClickListener(this);
+		steps.setOnClickListener(this);
+		foul.setOnClickListener(this);
+		guide.setOnClickListener(this);
+		
+		nofoul.setOnClickListener(this);
+		
+		Log.e(TAG, "State:"+uinterface.state.state);
+		
+	/*	if (uinterface.state.state == uinterface.detective) {
+			
+		
+			foul.setEnabled(true);
+				
+				
+			} else if(uinterface.state.state == uinterface.master) {
+			
+			
+				
+				foul.setEnabled(false);
+		
+			
+				//numberLayout_factors(null,uinterface.local.maxnumber);
+				
+			
+			}*/
+		uinterface.screen = this;
+
+		TurnChange();
+		new Handler().postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				act.KlugDialogs(act.StartGame, 1);
+				act.KlugDialogs(act.WaitHost, 1);
+			}
+
+		}, 2000);
+
+		
+		guide.setEnabled(false);
+		guide.getBackground().setColorFilter(Color.GRAY,PorterDuff.Mode.MULTIPLY);
+		
+		
+		return view;
+	}
+	
+	
+	
+	public void detectiveAnswering(boolean status) {
+		if (status == true) {
+		Log.e("Detective Answering", "True");
+		} else {
+			Log.e("Detective Answering", "False");
+		//	relativedetectives_answers.setVisibility(View.GONE);
+		//	relativewaitfordetectives.setVisibility(View.GONE);
+			//startgame.setBackgroundResource(R.drawable.planebackground);
+			//waitingForDetectives(true);
+		}
+	//	relativedetectives_answers.invalidate();
+	//	startgame.invalidate();
+	//	relativewaitfordetectives.invalidate();
+		//pp.setVisible(false);
+	}
+	
+	public void MasterEnd() {
+		if(uinterface.state.state==uinterface.detective) 
+		{
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+				//	if (mainv != null) 
+
+					//	masterButtonsDisplay(false);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.VISIBLE);
+						// detectiveWaiting(true); --
+						//masterEquationDisplay(false);
+						//detectiveAnswering(false);
+					//	footerDisplay(false);
+						masterMindEntering(false);
+						observeBot(true);
+				//		waitingForDetectives(false);
+						// --can add detective waiting
+													// also
+						// realtivelayoutdetective.setVisibility(View.VISIBLE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						Log.e("ZZ", "detective view");
+				//}	 else {
+					//	Log.e("ZZ", "view is null");
+					//}
+				}
+
+			});
+
+		}
+		else if(uinterface.state.state==uinterface.master)
+		{
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+				//	if (mainv != null) {
+
+					//	masterButtonsDisplay(false);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.VISIBLE);
+						// detectiveWaiting(true); --
+						observeBot(false);
+						detectiveAnswering(false);
+					//	footerDisplay(true);
+						masterMindEntering(false);// --can add detective waiting
+						//masterEquationDisplay(false);
+					//	waitingForDetectives(true);
+													// also
+						// realtivelayoutdetective.setVisibility(View.VISIBLE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						Log.e("ZZ", "master view");
+				//	} else {
+					//	Log.e("ZZ", "view is null");
+					//}
+				}
+
+			});
+			
+		}
+	}	
+	
+	
+	
+	
+	public void FoulRaised(String pawn){
+		
+		
+		Log.e("FoulRaised","Status is :"+pawn);
+		//act.KlugDialogs(dialogs, status);
+		
+
+		
+		
+		Log.e("ZZ", "FOULRAISED"  );
+		
+	
+
+
+		if (uinterface.state.state == uinterface.detective) {
+			Log.e("ZZ", "view is gone");
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+				
+
+					
+						act.KlugDialogs(act.Foulgame, 1);
+						act.KlugDialogs(act.PlayerWaiting, 0);
+					
+					
+				}
+
+			});
+
+			//
+		} else if (uinterface.state.state == uinterface.master) {
+			Log.e("ZZ", "view is visible");
+			// mainv.setVisibility(View.VISIBLE);
+
+			act.runOnUiThread(new Runnable()			{
+
+				@Override
+				public void run() {
+
+					act.KlugDialogs(act.WrongPawnTouched, 0);
+						
+					
+				}
+
+			});
+		}
+	
+		
+		
+		
+		
+	}
+		
+
+public void DetectiveStart_Testing() {
+		
+		
+		for(int i=0;i<uinterface.list.length;i++)
+		{
+			Log.e("ZZ","changint turn  X "+uinterface.list[i].turn+":"+uinterface.list[i].equation);
+			if(uinterface.list[i].turn==true)
+			{
+				sumstring=uinterface.list[i].equation;
+			}
+		}
+
+		//Log.e("ZZ", "DetectiveStart" + ":" + (mainv != null)+":"+sumstring);
+		
+		//TimerStart(1);
+		
+		// TimerStart(); -- triggered by the master after delay -- add delay in
+		// the BE
+		if (uinterface.state.state == uinterface.master) {
+			Log.e("detectivestartTesting", "detectivestartTesting-master");
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+				//	if (mainv != null) {
+			//			pp.setVisible(false);
+					//	masterButtonsDisplay(false);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.VISIBLE);
+						observeBot(false);
+						detectiveAnswering(false);
+						//footerDisplay(true);
+						masterMindEntering(false);
+						//masterEquationDisplay(false);
+					//	waitingForDetectives(true);
+						// realtivelayoutdetective.setVisibility(View.VISIBLE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						Log.e("ZZ", "detective view");
+			//		} else {
+				//		Log.e("ZZ", "view is null");
+				//	}
+				}
+
+			});
+
+			//4096 UTF 8 characters
+		}
+		else if(uinterface.state.state==uinterface.detective)
+		{
+			Log.e("detectivestartTesting", "detectivestartTesting-detective");
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+			//		if (mainv != null) {
+				//		pp.setVisible(false);
+				//		masterButtonsDisplay(false);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.VISIBLE);
+						observeBot(false);
+						//detectiveAnswering(true);
+				//		footerDisplay(true);
+						masterMindEntering(false);
+						//masterEquationDisplay(false);
+					//	waitingForDetectives(false);
+						
+						// realtivelayoutdetective.setVisibility(View.VISIBLE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						Log.e("ZZ", "detective view");
+				//	} else {
+				//		Log.e("ZZ", "view is null");
+				//	}
+				}
+
+			});
+			
+		}
+
+	}
+	
+	
+	
+	public void DetectiveStart() {
+		
+		//pp.setVisible(false);
+		Log.e("ZZ", "DetectiveStart" + ":" );
+		
+	//	TimerStart(1);
+
+
+		if (uinterface.state.state == uinterface.detective) {
+			Log.e("ZZ", "view is gone");
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+				
+
+					//	masterButtonsDisplay(false);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.VISIBLE);
+						//masterEquationDisplay(false);
+						detectiveAnswering(true);
+					//	footerDisplay(true);
+						masterMindEntering(false);
+					//	observeBot(false);
+						// realtivelayoutdetective.setVisibility(View.VISIBLE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						Log.e("ZZ", "detective start");
+					
+				}
+
+			});
+
+			//
+		} else if (uinterface.state.state == uinterface.master) {
+			Log.e("ZZ", "view is visible");
+			// mainv.setVisibility(View.VISIBLE);
+
+			act.runOnUiThread(new Runnable()			{
+
+				@Override
+				public void run() {
+
+					
+						
+						
+						masterMindEntering(false);
+						
+						//masterEquationDisplay(true);
+						// mainv.setVisibility(View.GONE);
+						// mainv.invalidate();
+						// relativedetectives_answers.setVisibility(View.GONE);
+						// realtivelayoutdetective.setVisibility(View.GONE);
+						// relativedetectives_answers.invalidate();
+						// realtivelayoutdetective.invalidate();
+						
+					
+				}
+
+			});
+		}
+	}		
+		
+	
+	public void masterMindEntering(boolean status) {
+		if (status == true) {
+			relativemastermind.setVisibility(View.VISIBLE);
+			
+		} else {
+			relativemastermind.setVisibility(View.GONE);
+			
+		}
+		relativemastermind.invalidate();
+		//pp.setVisible(false);
+	}
+		
+	public void observeBot(boolean status1)
+	{
+		final boolean status=status1;
+		act.runOnUiThread(new Runnable()
+		{
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				if(status==true)
+				{
+					observe_bot.setVisibility(View.VISIBLE);
+				}
+				else
+				{
+					observe_bot.setVisibility(View.GONE);
+				}
+				observe_bot.invalidate();				
+			}
+			
+		});
+
+		
+	}
+		
+public void TurnChange() {
+		
+
+		Log.e("Unity","Turnchange");	
+	
+	//	Log.e("ZZ", "changing turn " + uinterface.state.state + ":"
+	//			+ params.choicesize+":-"+sumstring);
+		if (uinterface.state.state == uinterface.detective) {
+			Log.e("ZZ", "view is detective");
+		
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					masterMindEntering(true);
+					act.KlugDialogs(act.PlayerWaiting, 1);
+				}
+
+			});
+
+			//
+		} else if (uinterface.state.state == uinterface.master) {
+			Log.e("ZZ", "view is master");
+			// mainv.setVisibility(View.VISIBLE);
+
+			act.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					Log.e("turnchange","master");
+					masterMindEntering(false);
+					observeBot(false);
+					act.KlugDialogs(act.PlayerWaiting, 1);
+					
+				}
+
+			});
+		}
+
+		Log.e("ZZ", "completed turn change" + ":" );
+	}
+
+public void EndBot()
+{
+	Log.e("ZZ","completed commands");
+	Log.e("ZZ","End BOT called");
+	uinterface.sendUnityMessage(AndroidUnityInterface.EndBot,"");
+}
+
+public void StartBot() {
+	// /TimerStart(1);
+	if(uinterface!=null )
+	{
+	/*for(int i=0;i<uinterface.list.length;i++)
+	{
+		if(uinterface.list[i].type==0)
+		{
+			Log.e("ZZ","found server equations "+uinterface.list[i].equation);
+			sumstring=uinterface.list[i].equation;
+		}
+	}
+	if(sumstring!=null)
+	{
+	Log.e("ZZ","sumstring is "+sumstring);
+	}
+	else
+	{
+		Log.e("ZZ","sumstring is null");
+	}
+	final ArrayList<String> equation = getArrayEquation(sumstring);*/
+	act.runOnUiThread(new Runnable()
+	{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+		//***	act.binterface.play(equation);
+			Log.d(TAG, "BOT IS PLAYING");
+		}
+		
+	
+	
+	});
+	
+	}else 
+		Log.e(TAG, "BOt IS NOT Startted cuz Uinterface is null");
+	
+	// after time ends,sends detective start to all
+}
+
+
+
+
+
+
+	int progressval = 0;
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress,
+			boolean fromUser) {
+		// TODO Auto-generated method stub
+		((MainActivity)getActivity()).play(3);
+		Log.d("on prog", "" + progress);
+		progressval = progress;
+		txtsteps.setText("" + (progressval + 1));
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
+		Log.d("on stop tracking", "" + progressval);
+		txtsteps.setText("" + progressval);
+	}
+
+	@Override
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+
+		switch (v.getId()) {
+		
+		
+		case R.id.btnnofoul:
+			Log.e(TAG, "Testflag is "+testflagA);
+			
+			
+			if(testflagA||testflagB){
+			
+				Log.d(TAG,"testflagCondition is TRUE");
+				
+			}
+		//	TurnChange();
+			uinterface.sendUnityMessage(AndroidUnityInterface.TurnEnd, "");
+			
+		break;
+		
+		case R.id.btnfoul:
+
+			
+			act.KlugDialogs(act.Foulgame, 0);
+			
+			
+			break;
+		case R.id.imageButtonGuide4:
+
+			if (mastersum.size()==2) {
+				
+					//TimerStart(0);// --TESTING to be renabled
+					Log.e(TAG, "calling cancel");
+					Log.e(TAG, "for masterend x");
+					Cancel(0);
+				}
+			
+			break;
+		case R.id.imageButtonRotate:
+
+			stepsdata = txtsteps.getText().toString();
+			relativecircle.setVisibility(v.VISIBLE);
+			relativecirclebackground.setVisibility(v.VISIBLE);
+			layoutsteps.setVisibility(v.GONE);
+			leftsteps.setBackgroundResource(R.drawable.stepsx);
+			rightangle.setBackgroundResource(R.drawable.anglex);
+			//senddata();
+			
+			Log.e(TAG, "mastersum.size"+mastersum.size());
+			
+			
+			
+			
+			
+			
+			break;
+		case R.id.imageButtonsteps:
+			
+			//senddata();
+			relativecircle.setVisibility(v.GONE);
+			relativecirclebackground.setVisibility(v.GONE);
+			layoutsteps.setVisibility(v.VISIBLE);
+			
+			if(mastersum.size()==2)
+			{	guide.setEnabled(true);
+			   guide.getBackground().setColorFilter(null);
+			}
+				else{
+				
+				guide.setEnabled(false);
+				guide.getBackground().setColorFilter(Color.GRAY,PorterDuff.Mode.MULTIPLY);
+			}
+		//	leftsteps.setBackgroundResource(R.drawable.stepsgame2);
+		//	rightangle.setBackgroundResource(R.drawable.anglegame2);
+			
+			
+			break;
+
+		default:
+			break;
+		}
+
+	}
+
+	private void senddata() {
+		// TODO Auto-generated method stub
+ if (uinterface.state.state == uinterface.master) {
+			
+	 				mastersum.clear();
+					mastersum.add(txtangle.getText().toString());
+					mastersum.add(txtsteps.getText().toString());
+					
+					Log.e("senddata", "Mastersum is"+mastersum);
+				
+			
+			}
+	}
+	
+	
+	public void rotateArrow(int toDegrees){
+		
+	//	animation=AnimationUtils.loadAnimation(getActivity(), R.anim.rotate);
+		r=new RotateAnimation(0, toDegrees, pointer.getWidth()/2, pointer.getHeight()-pointer.getWidth()/2);
+		r.setDuration(500);
+		//r.setInterpolator(new LinearInterpolator());
+		r.setFillAfter(true);
+		r.setFillEnabled(true);
+		pointer.startAnimation(r);
+
+		
+		
+	}
+
+	// private GestureDetector gdt=new GestureDetector(new GestureListener());
+
+	private final class MyTouchListener implements OnTouchListener {
+		
+		
+		
+		private double startangle;
+		public boolean onTouch(View view, MotionEvent motionEvent) {
+
+			Log.d(TAG, "" + motionEvent.getAction() + "ooo"
+					+ motionEvent.ACTION_UP);
+
+			if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+
+				Log.d(TAG, "GetX" + motionEvent.getX());
+				Log.d(TAG, "GetY" + motionEvent.getY());
+			}
+
+			if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+
+				startangle=getAngle(motionEvent.getX(), motionEvent.getY());
+				Log.d("action down", "xxxxx");
+				Log.d(" Angle is", ""+startangle);
+				
+				int ang=90-(int)startangle;
+				rotateArrow(ang);
+				
+				if(ang<-180){
+
+					txtangle.setText(""+(360+ang));
+				
+
+				}else{
+					txtangle.setText(""+ang);
+					
+						
+				}
+				
+				
+				
+
+				return true;
+			} else {
+				return true;
+			}
+		}
+
+	}
+	
+	public double getAngle(double xTouch, double yTouch) {
+	    double x = xTouch - (relativecircle.getWidth() / 2d);
+	    double y = relativecircle.getHeight() - yTouch - (relativecircle.getHeight() / 2d);
+	 
+	    switch (getQuadrant(x, y)) {
+	        case 1:
+	            return Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI;
+	        case 2:
+	            return 180 - Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI;
+	        case 3:
+	            return 180 + (-1 * Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
+	        case 4:
+	            return 360 + Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI;
+	        default:
+	            return 0;
+	    }
+	}
+	private static int getQuadrant(double x, double y) {
+	    if (x >= 0) {
+	        return y >= 0 ? 1 : 4;
+	    } else {
+	        return y >= 0 ? 2 : 3;
+	    }
+	}
+
+	class MyDragListener implements OnDragListener {
+
+		float latx = 0;
+		float laty = 0;
+
+		 int Xo=0;
+		 int Yo=0;
+		 
+		 float positionx,positiony;
+		
+		@Override
+		public boolean onDrag(View v, DragEvent event) {
+			int action = event.getAction();
+			// View v1 = (View) event.getLocalState();
+			// Log.d(TAG, "Bottom"+v1.getBottom());
+			// Log.d(TAG, "Top"+v1.getTop());
+			// Log.d(TAG, "Left"+v1.getLeft());
+			// Log.d(TAG, "Right"+v1.getRight());
+
+			
+			Log.d("ondrag", "entered");
+
+			switch (event.getAction()) {
+			case DragEvent.ACTION_DRAG_STARTED:
+				// do nothing
+				
+			     Xo = (int)event.getX();
+				 Yo =(int) event.getY();
+				Log.d("ActionDragstarted", "Xo " + (int) Xo + "Yo " + (int) Yo);
+				break;
+			case DragEvent.ACTION_DRAG_ENTERED:
+
+				Log.e("Action drag Enterd","Action DragEntered ----->");
+				float X1 = event.getX();
+				float Y1 = event.getY();
+				Log.d("DRAG ENTERED:", "X1 " + (int) X1 + "Y1 " + (int) Y1);
+				
+				break;
+			case DragEvent.ACTION_DRAG_EXITED:
+
+				Log.e("Action drag Exit","Action DragExit ----->");
+				Log.d("Xo is",""+Xo+"Yo is:"+Yo);
+				
+				
+				
+				
+				View v1 = (View) event.getLocalState();
+				Log.d("View Width is :",""+v1.getWidth()+"View HEight is:"+v1.getHeight());
+				v1.setX(positionx);
+				v1.setY(positiony);
+				
+				
+				
+				
+				
+				v1.setVisibility(v1.VISIBLE);
+				break;
+
+			case DragEvent.ACTION_DRAG_LOCATION:
+
+				Log.e("Action drag Location","Action DragLocation ----->");
+				float X2 = event.getX();
+				float Y2 = event.getY();
+			
+				Log.d("dragLocation", " X2 " + (int) X2 + " Y2 " + (int) Y2);
+
+		/*		latx = X2;
+				laty = Y2;
+
+				if ((((latx - 200) * (latx - 200)) + ((laty - 200) * (laty - 200))) <= (200 * 200)) {
+					Log.d("INSIDE", "TRUE");
+					Log.d("Point",
+							""
+									+ (((latx + 200) * (latx + 200)) + ((laty + 200) * (laty + 200))));
+				} else {
+					Log.d("Point",
+							""
+									+ (((latx + 200) * (latx + 200)) + ((laty + 200) * (laty + 200))));
+					Log.d("OUTSIDE", "TRUE");
+				}
+
+				Log.d("else", "else");
+				View v1 = (View) event.getLocalState();
+				v1.setX(X2 - (v1.getWidth() / 2));
+				v1.setY(Y2 - (v1.getHeight() / 2));
+				v1.setVisibility(v1.VISIBLE);
+         */
+				
+//				 View view1 = (View) event.getLocalState();
+//				 ViewGroup owner1 = (ViewGroup) view1.getParent();
+//				 owner1.removeView(view1);
+//				 RelativeLayout container1 = (RelativeLayout) v;
+//				 container1.addView(view1);
+//				 view1.setVisibility(View.VISIBLE);
+				break;
+
+			case DragEvent.ACTION_DROP:
+				// Dropped, reassign View to ViewGroup
+
+				
+				Log.e("Action Drop ----->","Action Drop ----->");
+				 View view = (View) event.getLocalState();
+				 ViewGroup owner = (ViewGroup) view.getParent();
+				 owner.removeView(view);
+				 RelativeLayout container = (RelativeLayout) v;
+				 container.addView(view);
+				 view.setVisibility(View.VISIBLE);
+				 
+				 
+				 Log.e("DROP", "DROPWIDTH is "+view.getWidth()+"DROPHEIGHT :"+view.getHeight());
+				 Log.e("DROP", "PARENTWIDTH is "+owner.getWidth()+"PARENTHEIGHT :"+owner.getHeight());
+				 
+				 
+				 positionx=(owner.getWidth()/2)-(view.getWidth()/2);
+				 positiony=(owner.getHeight()/2)-(view.getHeight()/2);
+
+				float X = event.getX();
+				float Y = event.getY();
+
+				
+				
+//				Log.d("ACTION DROP", "X " + (int) X + "Y " + (int) Y);
+//				view.setX(Xo);
+//				view.setY(Yo);
+//				view.setVisibility(View.VISIBLE);
+
+			
+				
+				
+				// if(((X*X)+(Y*Y))<=(165*165) ){
+				// // latx=event.getX();
+				// // laty=event.getY();
+				// // Log.d("ACTION DROP", "X " + (int) X + "Y " + (int) Y);
+				//
+			
+				/*
+				View view = (View) event.getLocalState();
+				view.setX(X - (view.getWidth() / 2));
+				view.setY(Y - (view.getHeight() / 2));
+				Log.d("LOGCATXXXX", "X " + (int) view.getX() + "Y "
+						+ (int) view.getY());
+				view.setVisibility(View.VISIBLE);*/
+
+			
+
+				break;
+			case DragEvent.ACTION_DRAG_ENDED:
+
+			default:
+				break;
+			}
+			return true;
+		}
+
+	}
+
+	@Override
+	public void Complete(int id) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void End(int id) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+//	int test_flag=0;
+	@Override
+	public void Cancel(int id) {
+		// TODO Auto-generated method stub
+
+		// TODO Auto-generated method stub
+
+		if (id == 0) {
+		//	TimerStop(id);
+
+			Log.e(TAG, "XXXXXXXX " + uinterface.local.type + ":"+ uinterface.master + ":" + uinterface.local.turn);
+			if (uinterface.local.turn == true) {
+				// validate equattion
+				
+					// timeoutDialog(0);
+				senddata();
+				Log.e("Cancel", "Mastersum is"+mastersum);
+					String eq = getEquation(mastersum);
+					
+					Log.d(TAG, "EQ is"+eq);
+					Log.d(TAG, "EQ LENGTH IS"+eq.length());
+					Log.d(TAG, "MASTERSUM SIZE IS"+mastersum.size());
+					
+					
+					
+					
+					if (mastersum.size() ==2 && mastersum.size()!=0) {
+						Log.e(TAG, "master End is calling");
+						uinterface.sendUnityMessage(AndroidUnityInterface.MasterEnd, eq);
+						mastersum.clear();
+						
+						
+						
+					} else {
+						// if the equation is not entered , turn change
+						if(mastersum.size()>2){
+						
+						
+//						uinterface.sendUnityMessage(AndroidUnityInterface.TurnEnd, eq);
+//						mastersum.clear();
+//						testflagA=true;
+//						Log.e(TAG, "Size after clear:"+mastersum);
+						
+						Log.e(TAG,"Turnend is called");
+						}
+						
+					} 
+					// needs to be turn end
+
+					
+					
+				
+			} else if(uinterface.local.turn==false){
+				
+				
+				Log.d("Cancel",":Local.turn is false");
+			}
+			
+		}else{
+			Log.d(TAG,"Cancel else");
+		}
+
+	
+			// TimerStop(1);
+			// /uinterface.sendUnityMessage(AndroidUnityInterface.DetectiveStart,"");
+		
+	}
+	@Override
+	public boolean runTask(int id, int TimeCounter) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	
+public ArrayList<String> getArrayEquation(String list) {
+	ArrayList<String> l1 = new ArrayList<String>();
+
+	GsonBuilder gsonb = new GsonBuilder();
+	Gson gson = gsonb.create();
+	JSONArray j;
+	try {
+		j = new JSONArray(list);
+		String[] l2 = gson.fromJson(j.toString(), String[].class);
+		for (int i = 0; i < l2.length; i++) {
+			l1.add(l2[i]);
+		}
+	} catch (JSONException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	return l1;
+	// /local =gson.fromJson(j1.toString(),PlayerData.class);
+
+}
+
+
+	public String getEquation(ArrayList<String> sum) {
+		String response = new String();
+		
+		ArrayList<String> tmp = new ArrayList<String>();
+		int last = 0;
+		/*if (sum != null && sum.size() > 0) {
+			if (sum.size() % 2 != 0) {
+				last = sum.size();
+			} else {
+				last = sum.size() - 1;
+			}
+		}*/
+		last=sum.size();
+		for (int i = 0; i < last; i++) {
+			tmp.add(sum.get(i));
+			Log.e("ZZ", "equation is " + sum.get(i));
+		}
+		Gson gson = new Gson();
+
+		if (sum != null && tmp.size() > 0)
+			response = gson.toJson(tmp);
+
+		return response;
+	}
+	
+//	public String getEquation(ArrayList<String> sum) {
+//		String response = new String();
+//		
+//		ArrayList<String> tmp = new ArrayList<String>();
+//		
+//		Gson gson = new Gson();
+//
+//		if (sum != null && tmp.size() > 0)
+//			response = gson.toJson(tmp);
+//		else
+//			Log.d("getEquation sum is null","");
+//		
+//		Log.e(TAG, "Rsponse is "+response);
+//		return response;
+//	}
+}

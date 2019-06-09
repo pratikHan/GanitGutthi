@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout2"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    >
+
+   
+
+       
+
+        
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textlabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@+id/checkBox1"
+                android:text="SELECT ONE"
+                android:textColor="#FFFFFF"
+                android:textSize="20dip" />
+
+            
+             <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:orientation="horizontal" >
+
+           
+
+            <RadioButton
+                android:id="@+id/radioButtonSwap"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:background="@drawable/custon_design_radio_button"
+                android:button="@null"
+                android:checked="true"
+                android:state_checked="true"
+                android:state_pressed="false"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/textswap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              
+                android:layout_marginRight="20dp"
+                android:text="SWAP PAWNS"
+                android:textColor="#FFFFFF"
+                android:textSize="20dip" />
+
+            <RadioButton
+                android:id="@+id/radioButtonRestart"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:background="@drawable/custon_design_radio_button"
+                android:button="@null"
+                android:checked="false"
+                android:state_checked="false"
+                android:state_pressed="false"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/textRestart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              
+                android:text="RE-START"
+                android:textColor="#FFFFFF"
+                android:textSize="20dip" />
+        </LinearLayout>
+   
+           
+        </LinearLayout>
+ 
+
+   
+
+</RelativeLayout>
